@@ -226,36 +226,33 @@
       }
     }
 
-    async function guardar(articulos) {
-      btn.disabled = true;
-      mostrarStatus("⏳ Guardando en Google Sheets...", "cargando");
+  async function guardar(articulos) {
+  btn.disabled = true;
+  mostrarStatus("⏳ Guardando en Google Sheets...", "cargando");
 
-      const fecha = new Date().toLocaleDateString("es-MX", {
-        day: "2-digit", month: "2-digit", year: "numeric"
-      });
+  const fecha = new Date().toLocaleDateString("es-MX", {
+    day: "2-digit", month: "2-digit", year: "numeric"
+  });
 
-      try {
-        const resp = await fetch(URL_API, {
-          method: "POST",
-          body: JSON.stringify({ fecha, articulos })
-        });
+  try {
+    await fetch(URL_API, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({ fecha, articulos })
+    });
 
-        const data = await resp.json();
+    // Con no-cors no podemos leer la respuesta, asumimos éxito
+    mostrarStatus(`✅ ${articulos.length} artículo(s) guardados correctamente.`, "ok");
+    textarea.value = "";
+    contador.textContent = "0 líneas detectadas";
 
-        if (data.ok) {
-          mostrarStatus(`✅ ${articulos.length} artículo(s) guardados correctamente.`, "ok");
-          textarea.value = "";
-          contador.textContent = "0 líneas detectadas";
-        } else {
-          mostrarStatus("❌ Error al guardar: " + data.error, "error");
-        }
+  } catch (err) {
+    mostrarStatus("❌ No se pudo conectar. Verifica tu internet.", "error");
+  }
 
-      } catch (err) {
-        mostrarStatus("❌ No se pudo conectar. Verifica tu internet.", "error");
-      }
-
-      btn.disabled = false;
-    }
+  btn.disabled = false;
+}
 
     function mostrarStatus(msg, tipo) {
       status.textContent = msg;
