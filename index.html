@@ -159,7 +159,7 @@
   <div class="preview" id="preview"></div>
 
   <script>
-    const URL_API = "https://script.google.com/macros/s/AKfycbzAZtJmab0eYr23GL-ESFKGGl3zXBt3VfVLR_FMmUExu6h9v00mk0o9ywGcaw3OmsP2/exec";
+    const URL_API = "https://script.google.com/macros/s/AKfycbzs0LLA3KMTwQmks3MXqpDXTLKi7KBE0OTSYA55r0LR6FX8w2g1rBakHjWKVY_kM0iZ/exec";
 
     const textarea = document.getElementById("lista");
     const contador = document.getElementById("contador");
@@ -226,7 +226,7 @@
       }
     }
 
-  async function guardar(articulos) {
+async function guardar(articulos) {
   btn.disabled = true;
   mostrarStatus("⏳ Guardando en Google Sheets...", "cargando");
 
@@ -235,20 +235,22 @@
   });
 
   try {
-    await fetch(URL_API, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "text/plain" },
-      body: JSON.stringify({ fecha, articulos })
-    });
+    const payload = encodeURIComponent(JSON.stringify({ fecha, articulos }));
+    const url = `${URL_API}?datos=${payload}`;
 
-    // Con no-cors no podemos leer la respuesta, asumimos éxito
-    mostrarStatus(`✅ ${articulos.length} artículo(s) guardados correctamente.`, "ok");
-    textarea.value = "";
-    contador.textContent = "0 líneas detectadas";
+    const resp = await fetch(url, { method: "GET" });
+    const data = await resp.json();
+
+    if (data.ok) {
+      mostrarStatus(`✅ ${articulos.length} artículo(s) guardados.`, "ok");
+      textarea.value = "";
+      contador.textContent = "0 líneas detectadas";
+    } else {
+      mostrarStatus("❌ Error: " + data.error, "error");
+    }
 
   } catch (err) {
-    mostrarStatus("❌ No se pudo conectar. Verifica tu internet.", "error");
+    mostrarStatus("❌ No se pudo conectar: " + err.message, "error");
   }
 
   btn.disabled = false;
